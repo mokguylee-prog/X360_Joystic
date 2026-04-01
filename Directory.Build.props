@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup Condition="'$(CustomBuildArtifactsRoot)' != ''">
+    <DefaultItemExcludes>
+      $(DefaultItemExcludes);
+      $(MSBuildProjectDirectory)\bin\**;
+      $(MSBuildProjectDirectory)\obj\**;
+      $(CustomBuildArtifactsRoot)\**
+    </DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

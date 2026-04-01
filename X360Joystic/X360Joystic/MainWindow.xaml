@@ -1,0 +1,341 @@
+﻿<Window x:Class="X360Joystic.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Xbox 360 Controller Test"
+        Icon="app.ico"
+        Width="740" Height="680"
+        MinWidth="700" MinHeight="620"
+        ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E">
+
+    <Window.Resources>
+        <!-- Vibration button style -->
+        <Style x:Key="VibButton" TargetType="Button">
+            <Setter Property="Padding"         Value="14,6"/>
+            <Setter Property="FontWeight"      Value="Bold"/>
+            <Setter Property="FontSize"        Value="12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.82"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.65"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.35"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SectionLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#666666"/>
+            <Setter Property="FontSize"   Value="11"/>
+            <Setter Property="Margin"     Value="0,0,0,6"/>
+        </Style>
+        <Style x:Key="InputLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="FontSize"   Value="12"/>
+            <Setter Property="Margin"     Value="0,0,0,4"/>
+        </Style>
+        <Style TargetType="ProgressBar">
+            <Setter Property="Height"          Value="16"/>
+            <Setter Property="Background"      Value="#2A2A2A"/>
+            <Setter Property="BorderBrush"     Value="#444444"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel Margin="16">
+
+        <!-- ?? Status bar ?? -->
+        <Border DockPanel.Dock="Top"
+                Background="#252525" CornerRadius="4"
+                Padding="12,8" Margin="0,0,0,14">
+            <Grid>
+                <TextBlock x:Name="StatusText"
+                           Text="컨트롤러를 찾는 중..."
+                           Foreground="#FFAA00"
+                           FontSize="14" FontWeight="Bold"
+                           VerticalAlignment="Center"/>
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <TextBlock x:Name="BatteryBar"  FontSize="16" Margin="0,0,6,0"
+                               VerticalAlignment="Center"/>
+                    <TextBlock x:Name="BatteryText" Foreground="#888888" FontSize="12"
+                               FontFamily="Consolas" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ?? Vibration panel ?? -->
+        <Border DockPanel.Dock="Bottom"
+                Background="#252525" CornerRadius="4"
+                Padding="14,10" Margin="0,14,0,0">
+            <StackPanel>
+                <TextBlock Text="진동 (Rumble) 테스트" Style="{StaticResource SectionLabel}"/>
+
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="44"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="왼쪽 모터 (저주파)" Foreground="#CCCCCC" FontSize="12"
+                               VerticalAlignment="Center"/>
+                    <Slider x:Name="LeftMotorSlider" Grid.Column="1"
+                            Minimum="0" Maximum="65535" Value="32768"
+                            VerticalAlignment="Center" Margin="10,0"
+                            ValueChanged="MotorSlider_ValueChanged"/>
+                    <TextBlock x:Name="LeftMotorText" Grid.Column="2" Text="050%"
+                               Foreground="#9CDCFE" FontSize="12" FontFamily="Consolas"
+                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="44"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="오른쪽 모터 (고주파)" Foreground="#CCCCCC" FontSize="12"
+                               VerticalAlignment="Center"/>
+                    <Slider x:Name="RightMotorSlider" Grid.Column="1"
+                            Minimum="0" Maximum="65535" Value="32768"
+                            VerticalAlignment="Center" Margin="10,0"
+                            ValueChanged="MotorSlider_ValueChanged"/>
+                    <TextBlock x:Name="RightMotorText" Grid.Column="2" Text="050%"
+                               Foreground="#9CDCFE" FontSize="12" FontFamily="Consolas"
+                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="왼쪽=저주파 모터, 오른쪽=고주파 모터"
+                               Foreground="#555555" FontSize="10" VerticalAlignment="Center"/>
+                    <WrapPanel Grid.Column="1">
+                        <Button x:Name="VibLeftBtn"  Style="{StaticResource VibButton}"
+                                Content="왼쪽만" Background="#4EC9B0" Foreground="#111"
+                                Margin="0,0,5,0" Click="VibLeftBtn_Click"/>
+                        <Button x:Name="VibRightBtn" Style="{StaticResource VibButton}"
+                                Content="오른쪽만" Background="#569CD6" Foreground="#111"
+                                Margin="0,0,5,0" Click="VibRightBtn_Click"/>
+                        <Button x:Name="VibBothBtn"  Style="{StaticResource VibButton}"
+                                Content="양쪽" Background="#C586C0" Foreground="#111"
+                                Margin="0,0,5,0" Click="VibBothBtn_Click"/>
+                        <Button x:Name="VibAltBtn"   Style="{StaticResource VibButton}"
+                                Content="교대" Background="#CE9178" Foreground="#111"
+                                Margin="0,0,5,0" Click="VibAltBtn_Click"/>
+                        <Button x:Name="VibStopBtn"  Style="{StaticResource VibButton}"
+                                Content="정지" Background="#555" Foreground="#CCC"
+                                Click="VibStopBtn_Click"/>
+                        <TextBlock x:Name="VibStatusText" Foreground="#888" FontSize="11"
+                                   VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    </WrapPanel>
+                </Grid>
+
+                <TextBlock x:Name="BottomErrorText"
+                           Foreground="OrangeRed"
+                           FontSize="11"
+                           Margin="0,8,0,0"
+                           Height="18"
+                           VerticalAlignment="Top"
+                           Visibility="Hidden"
+                           TextWrapping="NoWrap"
+                           TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ?? Main: controller image + analog panel ?? -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="190"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Controller image + button overlays -->
+            <Viewbox Grid.Column="0"
+                     Stretch="Uniform"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Stretch">
+                <Grid Width="499" Height="461" ClipToBounds="True">
+                    <Image Source="img/X360Jpystic.png"
+                           Width="499" Height="461"
+                           Stretch="Fill" VerticalAlignment="Top"/>
+
+                    <!-- Overlay canvas ??coordinates for 499횞461 image
+                         Xbox 360 layout: LeftStick=upper-left, DPad=lower-left
+                                          ABXY=upper-right, RightStick=lower-right
+                         Ellipse center = (Canvas.Left + Width/2, Canvas.Top + Height/2) -->
+                    <Canvas Width="499" Height="461" IsHitTestVisible="False">
+
+                        <!-- LT / RT  (analog ??Opacity driven by trigger value in code) -->
+                        <Ellipse x:Name="OvLT"
+                                 Width="58" Height="24" Fill="#4EC9B0" Opacity="0.05"/>
+                        <Ellipse x:Name="OvRT"
+                                 Width="58" Height="24" Fill="#4EC9B0" Opacity="0.05"/>
+
+                        <!-- LB / RB -->
+                        <Ellipse x:Name="OvLB"
+                                 Width="72" Height="26"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+                        <Ellipse x:Name="OvRB"
+                                 Width="72" Height="26"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+
+                        <!-- BACK / START -->
+                        <Ellipse x:Name="OvBack"
+                                 Width="28" Height="28"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+                        <Ellipse x:Name="OvStart"
+                                 Width="28" Height="28"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+
+                        <!-- Left Stick  (upper-left ??ABOVE D-Pad) center=(158,192) -->
+                        <Ellipse x:Name="OvL3"
+                                 Width="52" Height="52"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+
+                        <!-- D-Pad  (lower-left ??BELOW Left Stick) center??120,295) -->
+                        <Ellipse x:Name="OvUp"
+                                 Width="26" Height="26"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+                        <Ellipse x:Name="OvDown"
+                                 Width="26" Height="26"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+                        <Ellipse x:Name="OvLeft"
+                                 Width="26" Height="26"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+                        <Ellipse x:Name="OvRight"
+                                 Width="26" Height="26"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+
+                        <!-- Right Stick  (lower-right ??BELOW ABXY) center=(335,281) -->
+                        <Ellipse x:Name="OvR3"
+                                 Width="52" Height="52"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+
+                        <!-- Face buttons: Y(top) X(left) B(right) A(bottom) -->
+                        <Ellipse x:Name="OvY"
+                                 Width="30" Height="30"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+                        <Ellipse x:Name="OvX"
+                                 Width="30" Height="30"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+                        <Ellipse x:Name="OvB"
+                                 Width="30" Height="30"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+                        <Ellipse x:Name="OvA"
+                                 Width="30" Height="30"
+                                 Fill="Transparent" Stroke="#44FFFFFF" StrokeThickness="1.5"/>
+
+                        <!-- Stick position dots (move in code) -->
+                        <Ellipse x:Name="LSStickDot"
+                                 Width="14" Height="14" Fill="#AAFFFFFF"/>
+                        <Ellipse x:Name="RSStickDot"
+                                 Width="14" Height="14" Fill="#AAFFFFFF"/>
+                    </Canvas>
+                    </Grid>
+            </Viewbox>
+
+            <!-- Analog values panel -->
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="아날로그 입력" Style="{StaticResource SectionLabel}"/>
+
+                <!-- LT -->
+                <TextBlock Text="LT (왼쪽 트리거)" Style="{StaticResource InputLabel}"/>
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="52"/>
+                    </Grid.ColumnDefinitions>
+                    <ProgressBar x:Name="LTBar" Minimum="0" Maximum="255" Foreground="#4EC9B0"/>
+                    <TextBlock x:Name="LTText" Grid.Column="1" Text="0 / 255"
+                               Foreground="#888" FontSize="11" FontFamily="Consolas"
+                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- RT -->
+                <TextBlock Text="RT (오른쪽 트리거)" Style="{StaticResource InputLabel}"
+                           Margin="0,10,0,4"/>
+                <Grid Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="52"/>
+                    </Grid.ColumnDefinitions>
+                    <ProgressBar x:Name="RTBar" Minimum="0" Maximum="255" Foreground="#4EC9B0"/>
+                    <TextBlock x:Name="RTText" Grid.Column="1" Text="0 / 255"
+                               Foreground="#888" FontSize="11" FontFamily="Consolas"
+                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- Left stick -->
+                <TextBlock Text="왼쪽 스틱" Style="{StaticResource InputLabel}"/>
+                <Border Background="#252525" CornerRadius="4" Padding="10,8" Margin="0,0,0,10">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="X" Foreground="#555" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="LSXText" Grid.Column="1" Text="0"
+                                       Foreground="#9CDCFE" FontSize="13" FontFamily="Consolas"/>
+                        </Grid>
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Y" Foreground="#555" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="LSYText" Grid.Column="1" Text="0"
+                                       Foreground="#9CDCFE" FontSize="13" FontFamily="Consolas"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Right stick -->
+                <TextBlock Text="오른쪽 스틱" Style="{StaticResource InputLabel}"/>
+                <Border Background="#252525" CornerRadius="4" Padding="10,8">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="X" Foreground="#555" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="RSXText" Grid.Column="1" Text="0"
+                                       Foreground="#9CDCFE" FontSize="13" FontFamily="Consolas"/>
+                        </Grid>
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="18"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Y" Foreground="#555" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="RSYText" Grid.Column="1" Text="0"
+                                       Foreground="#9CDCFE" FontSize="13" FontFamily="Consolas"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</Window>
+
